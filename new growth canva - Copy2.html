@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Growth Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: black;
+        }
+
+        .section-title {
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 1.5em;
+        }
+
+        .options {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            flex-wrap: wrap; /* Ensure options wrap to next line if needed */
+        }
+        .linear-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.linear-section div {
+    display: flex;
+    flex-direction: column;
+}
+
+        .option {
+            margin-right: 20px;
+            cursor: pointer;
+            padding: 10px 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-top: 5px; /* Add some top margin to each option for spacing */
+            font-size: 1.2em; /* Increase the font size */
+            font-weight: bold; /* Make text bold */
+        }
+
+        .highlighted {
+            border: 2px solid red;
+            border-radius: 5px;
+        }
+
+        .textbox, input[type="text"], input[type="number"], input[type="date"], select {
+            font-size: 1.2em;  /* Increase the font size */
+            font-weight: bold; /* Make text bold */
+            margin-left: 20px;
+            color: black;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        label {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .placenta-section, .fetal-health-section, .cord-assessment-section, .afi-section, .cervical-section {
+            border: 1px solid #000;
+            padding: 10px;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .container {
+            margin-top: 20px;
+        }
+
+        .box {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        .heading {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: black;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+
+        /* Scoped styles for Fetal Doppler Evaluation section */
+        .doppler-section .doppler-info-box {
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            padding: 20px;
+            width: auto;
+        }
+
+        .doppler-section label {
+            display: block;
+            margin: 10px 0;
+        }
+
+        .doppler-section .doppler-radio-group {
+            margin: 10px 0;
+        }
+
+        .doppler-section .doppler-radio-label {
+            display: inline-block; /* Ensures labels are side by side */
+            margin-right: 20px; /* Space between radio buttons */
+            margin-bottom: 10px; /* Space below each radio group */
+        }
+
+        /* Additional style to keep the group label on its own line */
+        .doppler-section .radio-description {
+            display: block;
+            margin-bottom: 5px; /* Space above the radio buttons */
+        }
+
+        button {
+            font-size: 1.2em;
+            font-weight: bold;
+            padding: 10px 20px;
+            margin: 10px 0;
+            cursor: pointer;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #f4f4f4;
+            color: black;
+        }
+
+        button:hover {
+            background-color: #e0e0e0;
+        }
+@media print {
+    body {
+        font-size: 18pt;
+    }
+
+    .option, .section-title, th, td, .textbox, input[type="text"], input[type="number"], input[type="date"], .patient-info {
+        font-size: 1.0em;
+    }
+
+    /* Updated styles for linear layout with borders */
+    .placenta-section, .fetal-health-section, .cord-assessment-section, .cervical-section {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;  /* Align items from the top */
+        gap: 20px;                /* Adds some spacing between sections */
+        page-break-inside: avoid; /* Prevents the section from being split between pages */
+        border: 1px solid #000;   /* Keeps the border to show box outline */
+        padding: 10px;            /* Adds padding to make the box content visually clear */
+    }
+
+    .placenta-section div, .fetal-health-section div, .cord-assessment-section div, .cervical-section div {
+        margin: 5px;
+        padding: 0;
+        width: auto;              /* Makes sure the fields adjust to fit in line */
+    }
+
+    /* Adjust individual options to appear in line */
+    .options {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    label, input, select {
+        font-size: 12pt;          /* Adjust font size for print readability */
+    }
+
+    .textbox {
+        width: auto;
+        margin-left: 10px;
+    }
+}
+
+    </style>
+    <script>
+        function selectOption(section, option) {
+            const options = document.querySelectorAll(`.${section} .option`);
+            const selectedOption = document.querySelector(`[onclick="selectOption('${section}', '${option}')"]`);
+            const isHighlighted = selectedOption.classList.contains('highlighted');
+
+            options.forEach(opt => {
+                opt.classList.remove('highlighted');
+                opt.classList.remove('hidden');
+            });
+
+            if (!isHighlighted) {
+                options.forEach(opt => {
+                    if (opt.textContent !== option) {
+                        opt.classList.add('hidden');
+                    } else {
+                        opt.classList.add('highlighted');
+                    }
+                });
+            }
+        }
+
+        function moveOption(option) {
+            const currentList = option.parentElement;
+            const targetList = currentList.id === 'seen' ? document.getElementById('not-seen') : document.getElementById('seen');
+            targetList.appendChild(option);
+        }
+
+        function syncPatientName() {
+            const patientName = document.getElementById('patient-name').value;
+            document.getElementById('declaration-name').value = patientName;
+        }
+
+        function toggleEmptyCommentBoxes() {
+            const inputs = document.querySelectorAll('input[type="text"]');
+            const button = document.getElementById('toggleButton');
+            const hide = button.textContent === 'BSKRH';
+
+            inputs.forEach(input => {
+                if (input.placeholder === "Comments" && input.value === "") {
+                    input.style.display = hide ? 'none' : 'inline-block';
+                }
+            });
+
+            button.textContent = hide ? 'BSKRH1' : 'BSKRH';
+        }
+
+        function showBox() {
+            var selection = document.getElementById("evaluationType").value;
+            var boxes = document.querySelectorAll('.doppler-info-box');
+            boxes.forEach(box => {
+                box.style.display = 'none'; // hide all boxes
+            });
+            if (selection) {
+                document.getElementById(selection).style.display = 'block'; // show the selected box
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>BANASHANKARI REFERRAL HOSPITAL</h1>
+    <h2>TRANS ABDOMINAL OBSTETRIC ULTRASONOGRAPHY</h2>
+    <div>
+        <label for="patient-name">Patient Name:</label>
+        <input type="text" id="patient-name" name="patient-name" oninput="syncPatientName()">
+    </div>
+    <div>
+        <label for="age">Age:</label>
+        <input type="number" id="age" name="age">
+    </div>
+    <div>
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date">
+    </div>
+    <div>
+        <label for="referring-dr">Referring Dr:</label>
+        <input type="text" id="referring-dr" name="referring-dr">
+    </div>
+
+    <div class="section-title">Technical Conditions:</div>
+    <div class="options tc">
+        <div class="option" onclick="selectOption('tc', 'body habitus')">body habitus</div>
+        <div class="option" onclick="selectOption('tc', 'fetal lie')">fetal lie</div>
+        <div class="option" onclick="selectOption('tc', 'advanced GA')">advanced GA</div>
+        <input type="text" class="textbox" name="tc-comment" placeholder="Comments">
+    </div>
+
+    <div class="section-title">Presentation at the Time of Scan:</div>
+    <div class="options cephalic-options">
+        <div class="option" onclick="selectOption('cephalic-options', 'Cephalic')">Cephalic</div>
+        <div class="option" onclick="selectOption('cephalic-options', 'Breech')">Breech</div>
+        <div class="option" onclick="selectOption('cephalic-options', 'Transverse')">Transverse</div>
+        <input type="text" class="textbox" name="presentation-comment" placeholder="Comments">
+    </div>
+
+    <div class="placenta-section">
+        <div class="section-title">Placenta</div>
+        <div class="section-title">Placenta Location:</div>
+        <div class="options placenta-location">
+            <div class="option" onclick="selectOption('placenta-location', 'Anterior')">Anterior</div>
+            <div class="option" onclick="selectOption('placenta-location', 'Posterior')">Posterior</div>
+            <div class="option" onclick="selectOption('placenta-location', 'Left Lateral')">Left Lateral</div>
+            <div class="option" onclick="selectOption('placenta-location', 'Right Lateral')">Right Lateral</div>
+        </div>
+        <div class="options placenta-location1">
+            <div class="option" onclick="selectOption('placenta-location1', 'Anterior')">Anterior</div>
+            <div class="option" onclick="selectOption('placenta-location1', 'Posterior')">Posterior</div>
+            <div class="option" onclick="selectOption('placenta-location1', 'Left Lateral')">Left Lateral</div>
+            <div class="option" onclick="selectOption('placenta-location1', 'Right Lateral')">Right Lateral</div>
+            <input type="text" class="textbox" name="placenta-location1-comment" placeholder="Comments">
+        </div>
+        <div class="section-title">Placenta Segment:</div>
+        <div class="options placenta-segment">
+            <div class="option" onclick="selectOption('placenta-segment', 'Fundal')">Fundal</div>
+            <div class="option" onclick="selectOption('placenta-segment', 'Upper')">Upper</div>
+            <div class="option" onclick="selectOption('placenta-segment', 'Middle')">Middle</div>
+            <div class="option" onclick="selectOption('placenta-segment', 'Lower')">Lower</div>
+        </div>
+        <div class="options placenta-segment1">
+            <div class="option" onclick="selectOption('placenta-segment1', 'Fundal')">Fundal</div>
+            <div class="option" onclick="selectOption('placenta-segment1', 'Upper')">Upper</div>
+            <div class="option" onclick="selectOption('placenta-segment1', 'Middle')">Middle</div>
+            <div class="option" onclick="selectOption('placenta-segment1', 'Lower')">Lower</div>
+            <input type="text" class="textbox" name="placenta-segment-comment" placeholder="Comments">
+        </div>
+
+        <div class="section-title">Placenta Grade:</div>
+        <div class="options placenta-grade">
+            <div class="option" onclick="selectOption('placenta-grade', '1')">1</div>
+            <div class="option" onclick="selectOption('placenta-grade', '2')">2</div>
+            <div class="option" onclick="selectOption('placenta-grade', '3')">3</div>
+            <input type="text" class="textbox" name="placenta-grade-comment" placeholder="Comments">
+        </div>
+    </div>
+
+    <div class="fetal-health-section">
+        <div class="section-title">Fetal Health Parameters</div>
+        <div class="section-title">FHR</div>
+        <label for="fhr">BPM:</label>
+        <input type="number" id="fhr" name="fhr">
+        <label for="bpp">BPP:</label>
+        <input type="text" id="bpp" name="bpp">
+        <input type="text" class="textbox" name="fhr-comment" placeholder="Comments">
+
+        <div class="section-title">Fetal Activity</div>
+        <div class="options fetal-activity">
+            <div class="option" onclick="selectOption('fetal-activity', 'Yes')">Yes</div>
+            <div class="option" onclick="selectOption('fetal-activity', 'No')">No</div>
+            <input type="text" class="textbox" name="fetal-activity-comment" placeholder="Comments">
+        </div>
+    </div>
+
+    <div class="cord-assessment-section">
+        <div class="section-title">Cord Assessment</div>
+        <div class="section-title">Loops of Cord Around the Neck at the Time of Scan</div>
+        <div class="options cord-neck">
+            <div class="option" onclick="selectOption('cord-neck', 'Single')">Single</div>
+            <div class="option" onclick="selectOption('cord-neck', 'Double')">Double</div>
+            <div class="option" onclick="selectOption('cord-neck', 'No')">No</div>
+            <input type="text" class="textbox" name="cord-neck-comment" placeholder="Comments">
+        </div>
+
+        <div class="section-title">Three Vessel Cord</div>
+        <div class="options vessel-cord">
+            <div class="option" onclick="selectOption('vessel-cord', 'Yes')">Yes</div>
+            <div class="option" onclick="selectOption('vessel-cord', 'No')">No</div>
+            <input type="text" class="textbox" name="vessel-cord-comment" placeholder="Comments">
+        </div>
+    </div>
+
+    <div class="afi-section">
+        <div class="section-title">AFI</div>
+        <label for="afi">AFI:</label>
+        <input type="number" id="afi" name="afi" min="0" max="50">
+        <label for="SDP">SDP:</label>
+        <input type="number" id="SDP" name="SDP" min="0" max="12">
+        <input type="text" class="textbox" name="afi-comment" placeholder="Comments">
+    </div>
+
+    <div class="cervical-section">
+        <div class="section-title">Cervical and Placental Assessment</div>
+        <div class="section-title">Cervix</div>
+        <div class="options cervix">
+            <div class="option" onclick="selectOption('cervix', 'Normal')">Normal</div>
+            <div class="option" onclick="selectOption('cervix', 'Short')">Short</div>
+            <div class="option" onclick="selectOption('cervix', 'Not Evaluated')">Not Evaluated</div>
+            <input type="text" class="textbox" name="cervix-comment" placeholder="Comments">
+        </div>
+
+        <div class="section-title">IOS</div>
+        <div class="options ios">
+            <div class="option" onclick="selectOption('ios', 'Closed')">Closed</div>
+            <div class="option" onclick="selectOption('ios', 'Conning Present')">Conning Present</div>
+            <div class="option" onclick="selectOption('ios', 'Not Evaluated')">Not Evaluated</div>
+            <input type="text" class="textbox" name="ios-comment" placeholder="Comments">
+        </div>
+
+        <div class="section-title">Internal OS to Lower Edge of Placenta Distance</div>
+        <div class="options ios-distance">
+            <div class="option" onclick="selectOption('ios-distance', '≤ 2 cm')">≤ 2 cm</div>
+            <div class="option" onclick="selectOption('ios-distance', '< 5 cm')">< 5 cm</div>
+            <div class="option" onclick="selectOption('ios-distance', '> 5 cm')">> 5 cm</div>
+            <div class="option" onclick="selectOption('ios-distance', 'Not Evaluated')">Not Evaluated</div>
+            <input type="text" class="textbox" name="ios-distance-comment" placeholder="Comments">
+        </div>
+    </div>
+
+    <div class="box doppler-section">
+        <h2>Fetal Doppler Evaluation</h2>
+        <label for="evaluationType">Choose an evaluation type:</label>
+        <select id="evaluationType" name="evaluationType" onchange="showBox()">
+            <option value="">Select...</option>
+            <option value="screening">Screening</option>
+            <option value="sgaFetus">SGA Fetus</option>
+            <option value="suspectedIUGR">Suspected IUGR</option>
+        </select>
+        <div id="screening" class="doppler-info-box">
+            <h3>Screening</h3>
+            <label><input type="checkbox" name="umaFlowScreening" /> UMA Diastolic Flow Present</label>
+            <label><input type="checkbox" name="cprScreening" /> CPR > 1</label>
+        </div>
+        <div id="sgaFetus" class="doppler-info-box">
+            <h3>SGA Fetus</h3>
+            <label><input type="checkbox" name="umaFlowSGA" /> UMA Diastolic Flow</label>
+            <label><input type="checkbox" name="cprSGA" /> CPR > 1</label>
+            <div class="doppler-radio-group">
+                <span class="radio-description">UMA PI:</span>
+                <label class="doppler-radio-label"><input type="radio" name="umaPISGA" value="normal" /> Normal</label>
+                <label class="doppler-radio-label"><input type="radio" name="umaPISGA" value="abnormal" /> Abnormal</label>
+            </div>
+            <div class="doppler-radio-group">
+                <span class="radio-description">MCA PI:</span>
+                <label class="doppler-radio-label"><input type="radio" name="mcaPISGA" value="normal" /> Normal</label>
+                <label class="doppler-radio-label"><input type="radio" name="mcaPISGA" value="abnormal" /> Abnormal</label>
+            </div>
+            <div class="doppler-radio-group">
+                <span class="radio-description">UT PI:</span>
+                <label class="doppler-radio-label"><input type="radio" name="utPISGA" value="normal" /> Normal</label>
+                <label class="doppler-radio-label"><input type="radio" name="utPISGA" value="abnormal" /> Abnormal</label>
+            </div>
+        </div>
+        <div id="suspectedIUGR" class="doppler-info-box">
+            <h3>Suspected IUGR</h3>
+            <label><input type="checkbox" name="umaFlowIUGR" /> UMA Diastolic Flow</label>
+            <label><input type="checkbox" name="cprIUGR" /> CPR > 1</label>
+            <div class="doppler-radio-group">
+                <span class="radio-description">UMA PI:</span>
+                <label class="doppler-radio-label"><input type="radio" name="umaPIIUGR" value="normal" /> Normal</label>
+                <label class="doppler-radio-label"><input type="radio" name="umaPIIUGR" value="abnormal" /> Abnormal</label>
+            </div>
+            <div class="doppler-radio-group">
+                <span class="radio-description">MCA PI:</span>
+                <label class="doppler-radio-label"><input type="radio" name="mcaPIIUGR" value="normal" /> Normal</label>
+                <label class="doppler-radio-label"><input type="radio" name="mcaPIIUGR" value="abnormal" /> Abnormal</label>
+            </div>
+            <div class="doppler-radio-group">
+                <span class="radio-description">UT PI:</span>
+                <label class="doppler-radio-label"><input type="radio" name="utPIIUGR" value="normal" /> Normal</label>
+                <label class="doppler-radio-label"><input type="radio" name="utPIIUGR" value="abnormal" /> Abnormal</label>
+            </div>
+            <div class="doppler-radio-group">
+                <span class="radio-description">DV:</span>
+                <label class="doppler-radio-label"><input type="radio" name="dvIUGR" value="normal" /> Normal</label>
+                <label class="doppler-radio-label"><input type="radio" name="dvIUGR" value="abnormal" /> Abnormal</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="box">
+            <div class="heading">NO OBVIOUS GROSS ANOMALIES OF</div>
+            <ul id="not-seen" class="options">
+                <!-- Options will be dynamically added here -->
+            </ul>
+        </div>
+        <div class="box">
+            <div class="heading">Parts that could not be evaluated due to fetal lie/advanced gestational age</div>
+            <ul id="seen" class="options">
+                <li class="option" onclick="moveOption(this)">Intracranial</li>
+                <li class="option" onclick="moveOption(this)">mouth</li>
+                <li class="option" onclick="moveOption(this)">orbits</li>
+                <li class="option" onclick="moveOption(this)">neck</li>
+                <li class="option" onclick="moveOption(this)">chest</li>
+                <li class="option" onclick="moveOption(this)">spine</li>
+                <li class="option" onclick="moveOption(this)">renal</li>
+                <li class="option" onclick="moveOption(this)">upper limb</li>
+                <li class="option" onclick="moveOption(this)">lower limb</li>
+                <li class="option" onclick="moveOption(this)">abdomen</li>
+                <li class="option" onclick="moveOption(this)">cardia</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="section-title">Additional Notes:</div>
+    <div>
+        <input type="text" id="additional-notes" name="additional-notes" class="textbox" placeholder="....">
+    </div>
+
+    <div class="section-title">BPP Scores:</div>
+    <table>
+        <tr>
+            <th>Parameter</th>
+            <th>Score 2</th>
+            <th>Absent</th>
+            <th>Not Evaluated</th>
+        </tr>
+        <tr>
+            <td>Breathing</td>
+            <td><input type="radio" name="breathing" value="score 2"></td>
+            <td><input type="radio" name="breathing" value="absent"></td>
+            <td><input type="radio" name="breathing" value="not-evaluated"></td>
+        </tr>
+        <tr>
+            <td>Tone</td>
+            <td><input type="radio" name="tone" value="score 2"></td>
+            <td><input type="radio" name="tone" value="absent"></td>
+            <td><input type="radio" name="tone" value="not-evaluated"></td>
+        </tr>
+        <tr>
+            <td>Movements</td>
+            <td><input type="radio" name="movements" value="score 2"></td>
+            <td><input type="radio" name="movements" value="absent"></td>
+            <td><input type="radio" name="movements" value="not-evaluated"></td>
+        </tr>
+        <tr>
+            <td>AFI</td>
+            <td><input type="radio" name="afi" value="score 2"></td>
+            <td><input type="radio" name="afi" value="absent"></td>
+            <td><input type="radio" name="afi" value="not-evaluated"></td>
+        </tr>
+    </table>
+
+    <div class="section-title">Single Live Intrauterine Fetus Corresponding to:</div>
+    <div>
+        <label for="fetal-weeks">Weeks:</label>
+        <input type="number" id="fetal-weeks" name="fetal-weeks" min="19" max="36">
+    </div>
+    <div>
+        <label for="fetal-days">Days:</label>
+        <input type="number" id="fetal-days" name="fetal-days" min="0" max="6">
+    </div>
+    <div class="linear-section">
+    <div>
+        <label for="fetal-weight">Fetal Weight:</label>
+        <input type="text" id="fetal-weight" name="fetal-weight">
+    </div>
+    <div>
+        <label for="bpd">BPD:</label>
+        <input type="text" id="bpd" name="bpd">
+    </div>
+    <div>
+        <label for="hc">HC:</label>
+        <input type="text" id="hc" name="hc">
+    </div>
+    <div>
+        <label for="ac">AC:</label>
+        <input type="text" id="ac" name="ac">
+    </div>
+    <div>
+        <label for="fl">FL:</label>
+        <input type="text" id="fl" name="fl">
+    </div>
+    </div>
+    <div>
+        <input type="text" class="textbox" name="fetal-measurements-comment" placeholder="Comments">
+    </div>
+
+    <div class="section-title">Note:</div>
+    <p>Detection of anomalies depends on fetal position, liquor, gestational age, and maternal body habitus. Correlate with biochemical markers to rule out aneuploidies. Only the above-mentioned fetal parts have been visualized and assessed. Sonography has its own limitations. It is important to understand that all anomalies cannot be detected by scan.</p>
+    <div class="section-title">Declaration:</div>
+    <p>I declare that while conducting ultrasonography on Ms/Mrs. <input type="text" id="declaration-name" name="declaration-name" readonly>, I have neither detected nor disclosed the sex of her fetus to anybody in any manner.</p>
+
+    <button id="toggleButton" onclick="toggleEmptyCommentBoxes()">BSKRH</button>
+    <button>Submit</button>
+</body>
+</html>
