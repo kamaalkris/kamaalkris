@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROUTINE ANOMALY STUDY</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+    }
+    .options {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+    }
+    .option {
+        margin-right: 20px;
+        cursor: pointer;
+        font-size: 1.1em;
+        font-weight: bold;
+        padding: 5px 10px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+    }
+    .highlighted {
+        border: 3px solid red;
+        border-radius: 5px;
+    }
+    .section-title {
+        font-weight: bold;
+        font-size: 1.3em;
+        margin-top: 20px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    table, th, td {
+        border: 1px solid black;
+    }
+    label {
+            font-weight: bold;font-size: 1.2em;
+    }
+    th, td {
+        padding: 10px;
+        text-align: left;
+    }
+    .textbox, input[type="text"], input[type="number"], input[type="date"] {
+        font-size: 1.2em;  /* Increase the font size here */
+        font-weight: bold; /* Make text bold */
+        margin-left: 20px;
+    }
+    .hidden {
+        display: none;
+    }
+    .subparts {
+        margin-left: 20px;
+    }
+    .patient-info {
+        font-size: 1.3em; font-weight: bold;
+    }
+    .placenta-section, .fetal-health-section, .cord-assessment-section, .afi-section, .cervical-section {
+        border: 1px solid #000;
+        padding: 10px;
+        margin-top: 20px;
+    }
+    .no-border {
+        border: none;
+        background: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: none;
+        outline: none;
+    }
+    .textbox {
+    width: 60%;
+    box-sizing: border-box;
+    }
+    .options .no-border {
+        cursor: default;
+    }
+    .system-box {
+        border: 1px solid #ccc;
+        padding: 10px;
+        margin-top: 10px;
+        background-color: #f9f9f9;
+    }
+    .comment-box {
+        width: 100%;
+    }
+    button {
+        margin: 5px;
+    }
+    tr {
+        page-break-inside: avoid;
+    }
+    thead {
+        display: table-header-group;
+    }
+@media print {
+    .patient-info::before {
+        content: "Name:" attr(data-patient-name);
+        display: block;
+        position: fixed;
+        top: 0;
+        width: 50%;
+        background: none;
+        text-align: left;
+        padding: 0;
+        font-size: 8pt;
+        font-weight: normal;
+        color: #000;
+    }
+    .content {
+        margin-top: 10px; /* Adjust this value based on the space you need */
+            }
+            body {
+                font-size: 17pt;
+            }
+            .option, .section-title, th, td, .textbox, input[type="text"], input[type="number"], input[type="date"], .patient-info {
+                font-size: 1.1em;
+            }
+        }
+</style>
+    <script>
+        let fieldsHidden = false;
+
+        function selectOption(section, option) {
+            const options = document.querySelectorAll(`.${section} .option`);
+            const selectedOption = document.querySelector(`[onclick="selectOption('${section}', '${option}')"]`);
+            const isHighlighted = selectedOption.classList.contains('highlighted');
+
+            options.forEach(opt => {
+                opt.classList.remove('highlighted');
+                opt.classList.remove('hidden');
+            });
+
+            if (!isHighlighted) {
+                options.forEach(opt => {
+                    if (opt.textContent !== option) {
+                        opt.classList.add('hidden');
+                    } else {
+                        opt.classList.add('highlighted');
+                    }
+                });
+            }
+        }
+
+        function toggleUnusedFields() {
+            fieldsHidden = !fieldsHidden;
+            if (fieldsHidden) {
+                hideUnusedFields();
+            } else {
+                showAllFields();
+            }
+        }
+
+        function hideUnusedFields() {
+            const optionsContainers = document.querySelectorAll('.options');
+            optionsContainers.forEach(container => {
+                const highlighted = container.querySelector('.highlighted');
+                const commentBox = container.querySelector('.textbox');
+                if (!highlighted && (!commentBox || commentBox.value === '')) {
+                    container.classList.add('hidden');
+                } else {
+                    container.classList.add('no-border');
+                }
+            });
+
+            const commentBoxes = document.querySelectorAll('input.textbox');
+            commentBoxes.forEach(box => {
+                if (box.value === '') {
+                    box.classList.add('hidden');
+                } else {
+                    box.classList.add('no-border');
+                }
+            });
+
+            const inputs = document.querySelectorAll('input[type="text"], input[type="radio"], input[type="date"], input[type="number"]');
+            inputs.forEach(input => {
+                if (input.type === 'text' && input.value === '') {
+                    input.classList.add('hidden');
+                } else if (input.type === 'radio' && !input.checked) {
+                    input.classList.add('hidden');
+                } else if ((input.type === 'text' || input.type === 'number' || input.type === 'date') && input.value !== '') {
+                    input.classList.add('no-border');
+                }
+            });
+
+            const textSections = document.querySelectorAll('div > input[type="text"]');
+            textSections.forEach(section => {
+                const textBox = section.nextElementSibling;
+                if (textBox && textBox.value === '') {
+                    section.classList.add('hidden');
+                    textBox.classList.add('hidden');
+                } else {
+                    section.classList.add('no-border');
+                    if (textBox) textBox.classList.add('no-border');
+                }
+            });
+        }
+
+        function showAllFields() {
+            const hiddenElements = document.querySelectorAll('.hidden');
+            hiddenElements.forEach(element => {
+                element.classList.remove('hidden');
+            });
+
+            const noBorderElements = document.querySelectorAll('.no-border');
+            noBorderElements.forEach(element => {
+                element.classList.remove('no-border');
+            });
+        }
+
+        function addSystem() {
+            var system = document.getElementById('system-select').value;
+            if (system) {
+                var container = document.getElementById('systems-container');
+                var systemBox = document.createElement('div');
+                systemBox.className = 'system-box';
+                systemBox.innerHTML = generateSystemDetails(system);
+                container.appendChild(systemBox);
+            }
+        }
+
+        function removeSystem(button) {
+            var systemBox = button.parentNode;
+            systemBox.parentNode.removeChild(systemBox);
+        }
+
+        function generateSystemDetails(system) {
+            let title = `<h3>${system}</h3>`;
+            let table = '';
+            switch(system) {
+                case 'neurosono':
+                    table = neurosonoTable();
+                    break;
+                case 'cardia':
+                    table = cardiaTable();
+                    break;
+                case 'renal':
+                    table = renalTable();
+                    break;
+                case 'skeletal':
+                    table = skeletalTable();
+                    break;
+            }
+            let deleteButton = `<button onclick="removeSystem(this)">Delete</button>`;
+            return title + table + deleteButton;
+        }
+
+        function neurosonoTable() {
+            return `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>PLANE</th>
+                            <th>NORMAL</th>
+                            <th>ABNORMAL</th>
+                            <th>COMMENTS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4"><strong>AXIAL</strong></td></tr>
+                        <tr><td>Intact cranium</td><td><input type="radio" name="intact_cranium" value="normal"></td><td><input type="radio" name="intact_cranium" value="abnormal"></td><td><input type="text" name="intact_cranium_comments"></td></tr>
+                        <tr><td>Trans ventricular</td><td><input type="radio" name="trans_ventricular" value="normal"></td><td><input type="radio" name="trans_ventricular" value="abnormal"></td><td><input type="text" name="trans_ventricular_comments"></td></tr>
+                        <tr><td>Trans thalamic</td><td><input type="radio" name="trans_thalamic" value="normal"></td><td><input type="radio" name="trans_thalamic" value="abnormal"></td><td><input type="text" name="trans_thalamic_comments"></td></tr>
+                        <tr><td>Trans cerebellar</td><td><input type="radio" name="trans_cerebellar" value="normal"></td><td><input type="radio" name="trans_cerebellar" value="abnormal"></td><td><input type="text" name="trans_cerebellar_comments"></td></tr>
+                        <tr><td>Parito-occipital sulcus</td><td><input type="radio" name="parito_occipital" value="normal"></td><td><input type="radio" name="parito_occipital" value="abnormal"></td><td><input type="text" name="parito_occipital_comments"></td></tr>
+                        <tr><td colspan="4"><strong>SAGITTAL</strong></td></tr>
+                        <tr><td>Corpus collasum</td><td><input type="radio" name="corpus_collasum" value="normal"></td><td><input type="radio" name="corpus_collasum" value="abnormal"></td><td><input type="text" name="corpus_collasum_comments"></td></tr>
+                        <tr><td>Third ventricle</td><td><input type="radio" name="third_ventricle" value="normal"></td><td><input type="radio" name="third_ventricle" value="abnormal"></td><td><input type="text" name="third_ventricle_comments"></td></tr>
+                        <tr><td>Pericallosal vessel</td><td><input type="radio" name="pericallosal_vessel" value="normal"></td><td><input type="radio" name="pericallosal_vessel" value="abnormal"></td><td><input type="text" name="pericallosal_vessel_comments"></td></tr>
+                        <tr><td>vermis</td><td><input type="radio" name="vermis" value="normal"></td><td><input type="radio" name="vermis" value="abnormal"></td><td><input type="text" name="vermis_comments"></td></tr>
+                        <tr><td>Fourth ventricle</td><td><input type="radio" name="fourth_ventricle" value="normal"></td><td><input type="radio" name="fourth_ventricle" value="abnormal"></td><td><input type="text" name="fourth_ventricle_comments"></td></tr>
+                        <tr><td>Lateral ventricle either side</td><td><input type="radio" name="lateral_ventricle" value="normal"></td><td><input type="radio" name="lateral_ventricle" value="abnormal"></td><td><input type="text" name="lateral_ventricle_comments"></td></tr>
+                        <tr><td colspan="4"><strong>CORONAL</strong></td></tr>
+                        <tr><td>CSP</td><td><input type="radio" name="csp" value="normal"></td><td><input type="radio" name="csp" value="abnormal"></td><td><input type="text" name="csp_comments"></td></tr>
+                        <tr><td>Foramen of monro</td><td><input type="radio" name="foramen_of_monro" value="normal"></td><td><input type="radio" name="foramen_of_monro" value="abnormal"></td><td><input type="text" name="foramen_of_monro_comments"></td></tr>
+                        <tr><td>Anterior horn</td><td><input type="radio" name="anterior_horn" value="normal"></td><td><input type="radio" name="anterior_horn" value="abnormal"></td><td><input type="text" name="anterior_horn_comments"></td></tr>
+                        <tr><td>Occipital horn</td><td><input type="radio" name="occipital_horn" value="normal"></td><td><input type="radio" name="occipital_horn" value="abnormal"></td><td><input type="text" name="occipital_horn_comments"></td></tr>
+                        <tr><td>Sylvian fissure</td><td><input type="radio" name="sylvian_fissure" value="normal"></td><td><input type="radio" name="sylvian_fissure" value="abnormal"></td><td><input type="text" name="sylvian_fissure_comments"></td></tr>
+                        <tr><td colspan="4"><strong>SPINE</strong></td></tr>
+                        <tr><td>sag</td><td><input type="radio" name="spine_sag" value="normal"></td><td><input type="radio" name="spine_sag" value="abnormal"></td><td><input type="text" name="spine_sag_comments"></td></tr>
+                        <tr><td>trans</td><td><input type="radio" name="spine_trans" value="normal"></td><td><input type="radio" name="spine_trans" value="abnormal"></td><td><input type="text" name="spine_trans_comments"></td></tr>
+                        <tr><td>coronal</td><td><input type="radio" name="spine_coronal" value="normal"></td><td><input type="radio" name="spine_coronal" value="abnormal"></td><td><input type="text" name="spine_coronal_comments"></td></tr>
+                        <tr><td colspan="3">Additional Comments</td><td><input type="text" name="additional_comments"></td></tr>
+                    </tbody>
+                </table>
+                <br>
+                `;
+        }
+
+        function cardiaTable() {
+            return `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SECTION</th>
+                            <th>YES</th>
+                            <th>NO</th>
+                            <th>REMARKS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="4"><strong>SITUS AND UPPER ABDOMEN</strong></td></tr>
+                        <tr><td>Stomach bubble and cardia on fetal left?</td><td><input type="checkbox" name="situs_stomach_yes"></td><td><input type="checkbox" name="situs_stomach_no"></td><td><input type="text" name="situs_stomach_comments"></td></tr>
+                        <tr><td>Aorta on left spine</td><td><input type="checkbox" name="situs_aorta_yes"></td><td><input type="checkbox" name="situs_aorta_no"></td><td><input type="text" name="situs_aorta_comments"></td></tr>
+                        <tr><td>IVC on right of spine</td><td><input type="checkbox" name="situs_ivc_yes"></td><td><input type="checkbox" name="situs_ivc_no"></td><td><input type="text" name="situs_ivc_comments"></td></tr>
+                        <tr><td colspan="4"><strong>FOUR CHAMBER VIEW (GENERAL)</strong></td></tr>
+                        <tr><td>Heart on left ~ 45°</td><td><input type="checkbox" name="fourchamber_heart_yes"></td><td><input type="checkbox" name="fourchamber_heart_no"></td><td><input type="text" name="fourchamber_heart_comments"></td></tr>
+                        <tr><td>Heart one third of chest</td><td><input type="checkbox" name="fourchamber_chest_yes"></td><td><input type="checkbox" name="fourchamber_chest_no"></td><td><input type="text" name="fourchamber_chest_comments"></td></tr>
+                        <tr><td>Regular rhythm 120-160</td><td><input type="checkbox" name="fourchamber_rhythm_yes"></td><td><input type="checkbox" name="fourchamber_rhythm_no"></td><td><input type="text" name="fourchamber_rhythm_comments"></td></tr>
+                        <tr><td>No pericardial effusion</td><td><input type="checkbox" name="fourchamber_effusion_yes"></td><td><input type="checkbox" name="fourchamber_effusion_no"></td><td><input type="text" name="fourchamber_effusion_comments"></td></tr>
+                        <tr><td>Four chamber present</td><td><input type="checkbox" name="fourchamber_present_yes"></td><td><input type="checkbox" name="fourchamber_present_no"></td><td><input type="text" name="fourchamber_present_comments"></td></tr>
+                        <tr><td colspan="4"><strong>FOUR CHAMBER VIEW (ATRIA)</strong></td></tr>
+                        <tr><td>Two atria ~ equal in size</td><td><input type="checkbox" name="atria_equal_size_yes"></td><td><input type="checkbox" name="atria_equal_size_no"></td><td><input type="text" name="atria_equal_size_comments"></td></tr>
+                        <tr><td>Patent foramen ovale & flap in left atrium</td><td><input type="checkbox" name="atria_foramen_ovale_yes"></td><td><input type="checkbox" name="atria_foramen_ovale_no"></td><td><input type="text" name="atria_foramen_ovale_comments"></td></tr>
+                        <tr><td>Septum primum towards right atrium</td><td><input type="checkbox" name="atria_septum_primum_yes"></td><td><input type="checkbox" name="atria_septum_primum_no"></td><td><input type="text" name="atria_septum_primum_comments"></td></tr>
+                        <tr><td>At least one pulmonary vein seen entering left atrium</td><td><input type="checkbox" name="atria_pulmonary_vein_yes"></td><td><input type="checkbox" name="atria_pulmonary_vein_no"></td><td><input type="text" name="atria_pulmonary_vein_comments"></td></tr>
+                        <tr><td colspan="4"><strong>FOUR CHAMBER VIEW (ATRIO-VENTRICULAR JUNCTION)</strong></td></tr>
+                        <tr><td>Intact crux/two separate AV valve</td><td><input type="checkbox" name="av_valve_intact_crux_yes"></td><td><input type="checkbox" name="av_valve_intact_crux_no"></td><td><input type="text" name="av_valve_intact_crux_comments"></td></tr>
+                        <tr><td>Differential AV offsetting - TV closer to apex than MV</td><td><input type="checkbox" name="av_valve_offsetting_yes"></td><td><input type="checkbox" name="av_valve_offsetting_no"></td><td><input type="text" name="av_valve_offsetting_comments"></td></tr>
+                        <tr><td>Normal appearing AV valves</td><td><input type="checkbox" name="av_valve_appearance_yes"></td><td><input type="checkbox" name="av_valve_appearance_no"></td><td><input type="text" name="av_valve_appearance_comments"></td></tr>
+                        <tr><td>Equal filling in color with no regurgitation</td><td><input type="checkbox" name="av_valve_filling_yes"></td><td><input type="checkbox" name="av_valve_filling_no"></td><td><input type="text" name="av_valve_filling_comments"></td></tr>
+                        <tr><td colspan="4"><strong>FOUR CHAMBER VIEW (VENTRICULAR CHAMBERS)</strong></td></tr>
+                        <tr><td>Two ventricles approximately equal</td><td><input type="checkbox" name="ventricles_equal_yes"></td><td><input type="checkbox" name="ventricles_equal_no"></td><td><input type="text" name="ventricles_equal_comments"></td></tr>
+                        <tr><td>Moderator band in right ventricular apex</td><td><input type="checkbox" name="ventricles_moderator_band_yes"></td><td><input type="checkbox" name="ventricles_moderator_band_no"></td><td><input type="text" name="ventricles_moderator_band_comments"></td></tr>
+                        <tr><td>Ventricular septum intact</td><td><input type="checkbox" name="ventricles_septum_intact_yes"></td><td><input type="checkbox" name="ventricles_septum_intact_no"></td><td><input type="text" name="ventricles_septum_intact_comments"></td></tr>
+                        <tr><td>Left ventricle makes apex</td><td><input type="checkbox" name="ventricles_lv_apex_yes"></td><td><input type="checkbox" name="ventricles_lv_apex_no"></td><td><input type="text" name="ventricles_lv_apex_comments"></td></tr>
+                        <tr><td>No evidence of thickened wall</td><td><input type="checkbox" name="ventricles_no_thickened_wall_yes"></td><td><input type="checkbox" name="ventricles_no_thickened_wall_no"></td><td><input type="text" name="ventricles_no_thickened_wall_comments"></td></tr>
+                        <tr><td colspan="4"><strong>LEFT VENTRICULAR OUTFLOW TRACT</strong></td></tr>
+                        <tr><td>Septoaortic continuity</td><td><input type="checkbox" name="lvot_septoaortic_yes"></td><td><input type="checkbox" name="lvot_septoaortic_no"></td><td><input type="text" name="lvot_septoaortic_comments"></td></tr>
+                        <tr><td>Mitral-aortic continuity</td><td><input type="checkbox" name="lvot_mitral_aortic_yes"></td><td><input type="checkbox" name="lvot_mitral_aortic_no"></td><td><input type="text" name="lvot_mitral_aortic_comments"></td></tr>
+                        <tr><td>Not bifurcating</td><td><input type="checkbox" name="lvot_not_bifurcating_yes"></td><td><input type="checkbox" name="lvot_not_bifurcating_no"></td><td><input type="text" name="lvot_not_bifurcating_comments"></td></tr>
+                        <tr><td>Aortic valve not thickened</td><td><input type="checkbox" name="lvot_aortic_valve_yes"></td><td><input type="checkbox" name="lvot_aortic_valve_no"></td><td><input type="text" name="lvot_aortic_valve_comments"></td></tr>
+                        <tr><td>Vessel arises from morphological left ventricle placed left of fetus</td><td><input type="checkbox" name="lvot_vessel_arises_yes"></td><td><input type="checkbox" name="lvot_vessel_arises_no"></td><td><input type="text" name="lvot_vessel_arises_comments"></td></tr>
+                        <tr><td>No aliasing or Ying Yang sign in color mode</td><td><input type="checkbox" name="lvot_no_aliasing_yes"></td><td><input type="checkbox" name="lvot_no_aliasing_no"></td><td><input type="text" name="lvot_no_aliasing_comments"></td></tr>
+                        <tr><td colspan="4"><strong>RIGHT VENTRICULAR OUTFLOW TRACT</strong></td></tr>
+                        <tr><td>Anterior to aorta</td><td><input type="checkbox" name="rvot_anterior_aorta_yes"></td><td><input type="checkbox" name="rvot_anterior_aorta_no"></td><td><input type="text" name="rvot_anterior_aorta_comments"></td></tr>
+                        <tr><td>Bifurcates immediately</td><td><input type="checkbox" name="rvot_bifurcates_yes"></td><td><input type="checkbox" name="rvot_bifurcates_no"></td><td><input type="text" name="rvot_bifurcates_comments"></td></tr>
+                        <tr><td>Great vessels crossover</td><td><input type="checkbox" name="rvot_great_vessels_yes"></td><td><input type="checkbox" name="rvot_great_vessels_no"></td><td><input type="text" name="rvot_great_vessels_comments"></td></tr>
+                        <tr><td>Pulmonary valve not thickened</td><td><input type="checkbox" name="rvot_pulmonary_valve_yes"></td><td><input type="checkbox" name="rvot_pulmonary_valve_no"></td><td><input type="text" name="rvot_pulmonary_valve_comments"></td></tr>
+                        <tr><td colspan="4"><strong>3VV & 3VTV</strong></td></tr>
+                        <tr><td>Relationship of PA, aorta & SVC anterior to posterior</td><td><input type="checkbox" name="3vv_relationship_yes"></td><td><input type="checkbox" name="3vv_relationship_no"></td><td><input type="text" name="3vv_relationship_comments"></td></tr>
+                        <tr><td>Size PA >= aorta > SVC</td><td><input type="checkbox" name="3vv_size_pa_yes"></td><td><input type="checkbox" name="3vv_size_pa_no"></td><td><input type="text" name="3vv_size_pa_comments"></td></tr>
+                        <tr><td>Three vessels, no vessels lateral to PA</td><td><input type="checkbox" name="3vv_three_vessels_yes"></td><td><input type="checkbox" name="3vv_three_vessels_no"></td><td><input type="text" name="3vv_three_vessels_comments"></td></tr>
+                        <tr><td>V-shaped meeting of ductal and aorta arch to the left of trachea</td><td><input type="checkbox" name="3vv_v_shaped_yes"></td><td><input type="checkbox" name="3vv_v_shaped_no"></td><td><input type="text" name="3vv_v_shaped_comments"></td></tr>
+                        <tr><td>Concordance flow in color mode, no Ying Yang or aliasing</td><td><input type="checkbox" name="3vv_concordance_flow_yes"></td><td><input type="checkbox" name="3vv_concordance_flow_no"></td><td><input type="text" name="3vv_concordance_flow_comments"></td></tr>
+                        <tr><td>Neck vessels arise from great artery arising from morphological left ventricle</td><td><input type="checkbox" name="3vv_neck_vessels_yes"></td><td><input type="checkbox" name="3vv_neck_vessels_no"></td><td><input type="text" name="3vv_neck_vessels_comments"></td></tr>
+                        <tr><td>Thymus seen (H shape in color mode)</td><td><input type="checkbox" name="3vv_thymus_seen_yes"></td><td><input type="checkbox" name="3vv_thymus_seen_no"></td><td><input type="text" name="3vv_thymus_seen_comments"></td></tr>
+                        <tr><td colspan="3">Additional Comments</td><td><input type="text" name="additional_comments"></td></tr>
+                    </tbody>
+                </table>
+                <br>
+                `;
+        }
+
+        function renalTable() {
+            return `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>EXAMINATION</th>
+                            <th colspan="3">RIGHT</th>
+                            <th colspan="3">LEFT</th>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <th>NORMAL</th>
+                            <th>ABNORMAL</th>
+                            <th>COMMENTS</th>
+                            <th>NORMAL</th>
+                            <th>ABNORMAL</th>
+                            <th>COMMENTS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="7"><strong>PELVI ECTASIA</strong></td></tr>
+                        <tr><td>AP Diameter</td><td><input type="radio" name="right_ap_diameter" value="normal"></td><td><input type="radio" name="right_ap_diameter" value="abnormal"></td><td><input type="text" name="right_ap_diameter_comments"></td><td><input type="radio" name="left_ap_diameter" value="normal"></td><td><input type="radio" name="left_ap_diameter" value="abnormal"></td><td><input type="text" name="left_ap_diameter_comments"></td></tr>
+                        <tr><td>Evidence of Dilated</td></tr>
+                        <tr><td>Peripheral Calyx</td><td><input type="radio" name="right_calyx" value="normal"></td><td><input type="radio" name="right_calyx" value="abnormal"></td><td><input type="text" name="right_calyx_comments"></td><td><input type="radio" name="left_calyx" value="normal"></td><td><input type="radio" name="left_calyx" value="abnormal"></td><td><input type="text" name="left_calyx_comments"></td></tr>
+                        <tr><td>Ureter</td><td><input type="radio" name="right_ureter" value="normal"></td><td><input type="radio" name="right_ureter" value="abnormal"></td><td><input type="text" name="right_ureter_comments"></td><td><input type="radio" name="left_ureter" value="normal"></td><td><input type="radio" name="left_ureter" value="abnormal"></td><td><input type="text" name="left_ureter_comments"></td></tr>
+                        <tr><td>Kidney size</td><td><input type="radio" name="right_kidney" value="normal"></td><td><input type="radio" name="right_kidney" value="abnormal"></td><td><input type="text" name="right_kidney_comments"></td><td><input type="radio" name="left_kidney" value="normal"></td><td><input type="radio" name="left_kidney" value="abnormal"></td><td><input type="text" name="left_kidney_comments"></td></tr>
+                        <tr><td>Parenchymal Thinning</td><td><input type="radio" name="right_parenchymal_thinning" value="normal"></td><td><input type="radio" name="right_parenchymal_thinning" value="abnormal"></td><td><input type="text" name="right_parenchymal_thinning_comments"></td><td><input type="radio" name="left_parenchymal_thinning" value="normal"></td><td><input type="radio" name="left_parenchymal_thinning" value="abnormal"></td><td><input type="text" name="left_parenchymal_thinning_comments"></td></tr>
+                        <tr><td>Cysts</td><td><input type="radio" name="right_cysts" value="normal"></td><td><input type="radio" name="right_cysts" value="abnormal"></td><td><input type="text" name="right_cysts_comments"></td><td><input type="radio" name="left_cysts" value="normal"></td><td><input type="radio" name="left_cysts" value="abnormal"></td><td><input type="text" name="left_cysts_comments"></td></tr>
+                        <tr><td>Increased Echogenicity</td><td><input type="radio" name="right_increased_echogenicity" value="normal"></td><td><input type="radio" name="right_increased_echogenicity" value="abnormal"></td><td><input type="text" name="right_increased_echogenicity_comments"></td><td><input type="radio" name="left_increased_echogenicity" value="normal"></td><td><input type="radio" name="left_increased_echogenicity" value="abnormal"></td><td><input type="text" name="left_increased_echogenicity_comments"></td></tr>
+                        <tr><td>Perinephric Urinoma</td><td><input type="radio" name="right_perinephric_urinoma" value="normal"></td><td><input type="radio" name="right_perinephric_urinoma" value="abnormal"></td><td><input type="text" name="right_perinephric_urinoma_comments"></td><td><input type="radio" name="left_perinephric_urinoma" value="normal"></td><td><input type="radio" name="left_perinephric_urinoma" value="abnormal"></td><td><input type="text" name="left_perinephric_urinoma_comments"></td></tr>
+                        <tr><td>Bladder</td><td><input type="radio" name="bladder" value="normal"></td><td><input type="radio" name="bladder" value="abnormal"></td><td><input type="text" name="bladder_comments"></td></tr>
+                        <tr><td>Thick Walled</td><td><input type="radio" name="thick_walled" value="normal"></td><td><input type="radio" name="thick_walled" value="abnormal"></td><td><input type="text" name="thick_walled_comments"></td></tr>
+                        <tr><td>Urethra</td><td><input type="radio" name="urethra" value="normal"></td><td><input type="radio" name="urethra" value="abnormal"></td><td><input type="text" name="urethra_comments"></td></tr>
+                        <tr><td>Keyhole Sign</td><td><input type="radio" name="keyhole_sign" value="normal"></td><td><input type="radio" name="keyhole_sign" value="abnormal"></td><td><input type="text" name="keyhole_sign_comments"></td></tr>
+                        <tr><td>Oligohydramnios (SDP <2cms)</td><td><input type="radio" name="oligohydramnios" value="normal"></td><td><input type="radio" name="oligohydramnios" value="abnormal"></td><td><input type="text" name="oligohydramnios_comments"></td></tr>
+                        <tr><td>Other Major Anomalies</td><td><input type="text" name="right_other_major_anomalies_comments"></td></tr>
+                        <tr><td>Other Soft Markers</td><td><input type="text" name="left_other_soft_markers_comments"></td></tr>
+                    </tbody>
+                </table>
+                <br>
+                `;
+        }
+
+        function skeletalTable() {
+            return `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>EXAMINATION</th>
+                            <th>NORMAL</th>
+                            <th>ABNORMAL</th>
+                            <th>COMMENTS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Gestational age based on LMP or first trimester ultrasound</td><td><input type="radio" name="gestational_age" value="normal"></td><td><input type="radio" name="gestational_age" value="abnormal"></td><td><input type="text" name="gestational_age_comments"></td></tr>
+                        <tr><td>Length of the long bones (femurs, humerus, radius, ulna, tibia, fibula, and clavicle)</td><td><input type="radio" name="long_bones_length" value="normal"></td><td><input type="radio" name="long_bones_length" value="abnormal"></td><td><input type="text" name="long_bones_length_comments"></td></tr>
+                        <tr><td>Shape of long bones (straight, curved, bilateral vs. unilateral)</td><td><input type="radio" name="long_bones_shape" value="normal"></td><td><input type="radio" name="long_bones_shape" value="abnormal"></td><td><input type="text" name="long_bones_shape_comments"></td></tr>
+                        <tr><td>Appearance of the metaphyseal ends (spikes, irregularities)</td><td><input type="radio" name="metaphyseal_ends" value="normal"></td><td><input type="radio" name="metaphyseal_ends" value="abnormal"></td><td><input type="text" name="metaphyseal_ends_comments"></td></tr>
+                        <tr><td>Echodensity of long bones (well mineralized, poorly mineralized)</td><td><input type="radio" name="long_bones_echodensity" value="normal"></td><td><input type="radio" name="long_bones_echodensity" value="abnormal"></td><td><input type="text" name="long_bones_echodensity_comments"></td></tr>
+                        <tr><td>Foot size and shape</td><td><input type="radio" name="foot_size_shape" value="normal"></td><td><input type="radio" name="foot_size_shape" value="abnormal"></td><td><input type="text" name="foot_size_shape_comments"></td></tr>
+                        <tr><td>Hands (number of digits, shape of phalanges, mineralization patterns)</td><td><input type="radio" name="hands" value="normal"></td><td><input type="radio" name="hands" value="abnormal"></td><td><input type="text" name="hands_comments"></td></tr>
+                        <tr><td>Circumferences (head, abdomen, and chest)</td><td><input type="radio" name="circumferences" value="normal"></td><td><input type="radio" name="circumferences" value="abnormal"></td><td><input type="text" name="circumferences_comments"></td></tr>
+                        <tr><td>Lateral view of the chest</td><td><input type="radio" name="lateral_view_chest" value="normal"></td><td><input type="radio" name="lateral_view_chest" value="abnormal"></td><td><input type="text" name="lateral_view_chest_comments"></td></tr>
+                        <tr><td>Mineralization and shape of the cranium</td><td><input type="radio" name="cranium" value="normal"></td><td><input type="radio" name="cranium" value="abnormal"></td><td><input type="text" name="cranium_comments"></td></tr>
+                        <tr><td>Mineralization and shape of the vertebral bodies</td><td><input type="radio" name="vertebral_bodies" value="normal"></td><td><input type="radio" name="vertebral_bodies" value="abnormal"></td><td><input type="text" name="vertebral_bodies_comments"></td></tr>
+                        <tr><td>Size and shape of scapula</td><td><input type="radio" name="scapula" value="normal"></td><td><input type="radio" name="scapula" value="abnormal"></td><td><input type="text" name="scapula_comments"></td></tr>
+                        <tr><td>Presence of the secondary epiphyses (calcaneus >20 wk and knee epiphyses >28 wk)</td><td><input type="radio" name="secondary_epiphyses" value="normal"></td><td><input type="radio" name="secondary_epiphyses" value="abnormal"></td><td><input type="text" name="secondary_epiphyses_comments"></td></tr>
+                        <tr><td>Mandibular size and shape</td><td><input type="radio" name="mandible" value="normal"></td><td><input type="radio" name="mandible" value="abnormal"></td><td><input type="text" name="mandible_comments"></td></tr>
+                        <tr><td>Fetal profile (frontal bossing, presence of nasal bone, micrognathia)</td><td><input type="radio" name="fetal_profile" value="normal"></td><td><input type="radio" name="fetal_profile" value="abnormal"></td><td><input type="text" name="fetal_profile_comments"></td></tr>
+                        <tr><td>Abnormal posturing of the extremities</td><td><input type="radio" name="extremities_posturing" value="normal"></td><td><input type="radio" name="extremities_posturing" value="abnormal"></td><td><input type="text" name="extremities_posturing_comments"></td></tr>
+                        <tr><td>Other congenital anomalies</td><td><input type="radio" name="congenital_anomalies" value="normal"></td><td><input type="radio" name="congenital_anomalies" value="abnormal"></td><td><input type="text" name="congenital_anomalies_comments"></td></tr>
+                        <tr><td>Evaluation of amniotic fluid volume (hydramnios)</td><td><input type="radio" name="amniotic_fluid_volume" value="normal"></td><td><input type="radio" name="amniotic_fluid_volume" value="abnormal"></td><td><input type="text" name="amniotic_fluid_volume_comments"></td></tr>
+                        <tr><td>Hydrops</td><td><input type="radio" name="hydrops" value="normal"></td><td><input type="radio" name="hydrops" value="abnormal"></td><td><input type="text" name="hydrops_comments"></td></tr>
+                    </tbody>
+                </table>
+                <br>
+                `;
+        }
+
+        let commentsHidden = false;
+
+        function toggleComments() {
+            const textboxes = document.querySelectorAll('input[type="text"]');
+            textboxes.forEach(box => {
+                if (!box.value) {
+                    box.parentElement.style.display = commentsHidden ? '' : 'none';
+                }
+            });
+            commentsHidden = !commentsHidden;
+            document.getElementById('toggleButton').innerText = commentsHidden ? 'Show Unused Comments' : 'Hide Unused Comments';
+        }
+    </script>
+</head>
+<body>
+    <h1>BANASHANKRI REFERRAL HOSPITAL</h1>
+    <h2>ROUTINE ANOMALY ULTRASONOGRAPHY</h2>
+    <div class="patient-info">
+        <label for="patient-name">Patient Name:</label>
+        <input type="text" id="patient-name" name="patient-name">
+    </div>
+    <div class="patient-info">
+        <label for="age">Age:</label>
+        <input type="number" id="age" name="age">
+    </div>
+    <div class="patient-info">
+        <label for="MRN">MRN:</label>
+        <input type="number" id="MRN" name="MRN">
+    </div>
+    <div class="patient-info">
+        <label for="date">Date:</label>
+        <input type="date" id="date" name="date">
+    </div>
+    <div class="patient-info">
+        <label for="referring-dr">Referring Dr:</label>
+        <input type="text" id="referring-dr" name="referring-dr">
+    </div>
+
+    <div class="section-title">Technical Conditions:</div>
+    <div class="options tc">
+        <div class="option" onclick="selectOption('tc', 'body habitus')">body habitus</div>
+        <div class="option" onclick="selectOption('tc', 'fetal lie')">fetal lie</div>
+        <div class="option" onclick="selectOption('tc', 'advanced GA')">advanced GA</div>
+        <input type="text" class="textbox" name="tc-comment" placeholder="Comments">
+    </div>
+
+    <div class="section-title">Presentation at the Time of Scan:</div>
+    <div class="options cephalic-options">
+        <div class="option" onclick="selectOption('cephalic-options', 'Cephalic')">Cephalic</div>
+        <div class="option" onclick="selectOption('cephalic-options', 'Breech')">Breech</div>
+        <div class="option" onclick="selectOption('cephalic-options', 'Transverse')">Transverse</div>
+        <input type="text" class="textbox" name="presentation-comment" placeholder="Comments">
+    </div>
+
+    <div class="placenta-section">
+        <div class="section-title">Placenta</div>
+        <div class="section-title">Placenta Location:</div>
+        <div class="options placenta-location">
+            <div class="option" onclick="selectOption('placenta-location', 'Anterior')">Anterior</div>
+            <div class="option" onclick="selectOption('placenta-location', 'Posterior')">Posterior</div>
+            <div class="option" onclick="selectOption('placenta-location', 'Left Lateral')">Left Lateral</div>
+            <div class="option" onclick="selectOption('placenta-location', 'Right Lateral')">Right Lateral</div>
+        </div>
+        <div class="options placenta-location1">
+            <div class="option" onclick="selectOption('placenta-location1', 'Anterior')">Anterior</div>
+            <div class="option" onclick="selectOption('placenta-location1', 'Posterior')">Posterior</div>
+            <div class="option" onclick="selectOption('placenta-location1', 'Left Lateral')">Left Lateral</div>
+            <div class="option" onclick="selectOption('placenta-location1', 'Right Lateral')">Right Lateral</div>
+            <input type="text" class="textbox" name="placenta-location1-comment" placeholder="Comments">
+        </div>
+        <div class="section-title">Placenta Segment:</div>
+        <div class="options placenta-segment">
+            <div class="option" onclick="selectOption('placenta-segment', 'Fundal')">Fundal</div>
+            <div class="option" onclick="selectOption('placenta-segment', 'Upper')">Upper</div>
+            <div class="option" onclick="selectOption('placenta-segment', 'Middle')">Middle</div>
+            <div class="option" onclick="selectOption('placenta-segment', 'Lower')">Lower</div>
+        </div>
+        <div class="options placenta-segment1">
+            <div class="option" onclick="selectOption('placenta-segment1', 'Fundal')">Fundal</div>
+            <div class="option" onclick="selectOption('placenta-segment1', 'Upper')">Upper</div>
+            <div class="option" onclick="selectOption('placenta-segment1', 'Middle')">Middle</div>
+            <div class="option" onclick="selectOption('placenta-segment1', 'Lower')">Lower</div>
+            <input type="text" class="textbox" name="placenta-segment-comment" placeholder="Comments">
+        </div>
+
+        <div class="section-title">Placenta Grade:</div>
+        <div class="options placenta-grade">
+            <div class="option" onclick="selectOption('placenta-grade', '1')">1</div>
+            <div class="option" onclick="selectOption('placenta-grade', '2')">2</div>
+            <div class="option" onclick="selectOption('placenta-grade', '3')">3</div>
+            <input type="text" class="textbox" name="placenta-grade-comment" placeholder="Comments">
+        </div>
+    </div>
+
+    <div class="fetal-health-section">
+        <div class="section-title">Fetal Health Parameters</div>
+        <div class="section-title">FHR</div>
+        <label for="fhr">BPM:</label>
+        <input type="number" id="fhr" name="fhr">
+        <input type="text" class="textbox" name="fhr-comment" placeholder="Comments">
+
+        <div class="section-title">Fetal Activity</div>
+        <div class="options fetal-activity">
+            <div class="option" onclick="selectOption('fetal-activity', 'Yes')">Yes</div>
+            <div class="option" onclick="selectOption('fetal-activity', 'No')">No</div>
+            <input type="text" class="textbox" name="fetal-activity-comment" placeholder="Comments">
+        </div>
+    </div>
+
+    <div class="cord-assessment-section">
+        <div class="section-title">Cord Assessment</div>
+        <div class="section-title">Loops of Cord Around the Neck at the Time of Scan</div>
+        <div class="options cord-neck">
+            <div class="option" onclick="selectOption('cord-neck', 'Single')">Single</div>
+            <div class="option" onclick="selectOption('cord-neck', 'Double')">Double</div>
+            <div class="option" onclick="selectOption('cord-neck', 'No')">No</div>
+            <input type="text" class="textbox" name="cord-neck-comment" placeholder="Comments">
+        </div>
+
+        <div class="section-title">Three Vessel Cord</div>
+        <div class="options vessel-cord">
+            <div class="option" onclick="selectOption('vessel-cord', 'Yes')">Yes</div>
+            <div class="option" onclick="selectOption('vessel-cord', 'No')">No</div>
+            <input type="text" class="textbox" name="vessel-cord-comment" placeholder="Comments">
+        </div>
+    </div>
+
+    <div class="afi-section">
+        <div class="section-title">AFI</div>
+        <label for="afi">AFI:</label>
+        <input type="number" id="afi" name="afi" min="0" max="50">
+        <label for="SDP">SDP:</label>
+        <input type="number" id="SDP" name="SDP" min="0" max="12">
+        <input type="text" class="textbox" name="afi-comment" placeholder="Comments">
+    </div>
+
+    <div class="cervical-section">
+        <div class="section-title">Cervical and Placental Assessment</div>
+        <div class="section-title">Cervix</div>
+        <div class="options cervix">
+            <div class="option" onclick="selectOption('cervix', 'Normal')">Normal</div>
+            <div class="option" onclick="selectOption('cervix', 'Short')">Short</div>
+            <div class="option" onclick="selectOption('cervix', 'Not Evaluated')">Not Evaluated</div>
+            <input type="text" class="textbox" name="cervix-comment" placeholder="Comments">
+        </div>
+
+        <div class="section-title">IOS</div>
+        <div class="options ios">
+            <div class="option" onclick="selectOption('ios', 'Closed')">Closed</div>
+            <div class="option" onclick="selectOption('ios', 'Conning Present')">Conning Present</div>
+            <div class="option" onclick="selectOption('ios', 'Not Evaluated')">Not Evaluated</div>
+            <input type="text" class="textbox" name="ios-comment" placeholder="Comments">
+        </div>
+
+        <div class="section-title">Internal OS to Lower Edge of Placenta Distance</div>
+        <div class="options ios-distance">
+            <div class="option" onclick="selectOption('ios-distance', '≤ 2 cm')">≤ 2 cm</div>
+            <div class="option" onclick="selectOption('ios-distance', '< 5 cm')">< 5 cm</div>
+            <div class="option" onclick="selectOption('ios-distance', '> 5 cm')">> 5 cm</div>
+            <div class="option" onclick="selectOption('ios-distance', 'Not Evaluated')">Not Evaluated</div>
+            <input type="text" class="textbox" name="ios-distance-comment" placeholder="Comments">
+        </div>
+    </div>
+
+    <div class="section-title">No Obvious Gross Anomalies of:</div>
+    <table>
+        <thead>
+            <tr>
+                <th>FETAL-ANATOMY-PART</th>
+                <th>Normal</th>
+                <th>Abnormal</th>
+                <th>Comments</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Head
+                    <div class="subparts">
+                        <input type="checkbox" id="Midline-Falx" name="Midline-Falx"> Midline-Falx
+                        <input type="checkbox" id="----CSP-----" name="----CSP-----"> ----CSP-----
+                        <input type="checkbox" id="L_ventricle" name="L_ventricle"> L_ventricle
+                        <input type="checkbox" id="cerebellum" name="cerebellum"> Cerebellum
+                        <input type="checkbox" id="nuchal-fold" name="nuchal-fold"> NuchalFold
+                    </div>
+                </td>
+                <td><input type="radio" name="head-status" value="Normal"></td>
+                <td><input type="radio" name="head-status" value="Abnormal"></td>
+                <td><input type="text" name="head-comment"></td>
+            </tr>
+            <tr>
+                <td>Facial profile
+                    <div class="subparts">
+                        <input type="checkbox" id="nasal bone" name="nasal bone"> nasal-bone
+                    </div>
+                </td>
+                <td><input type="radio" name="facial profile-status" value="Normal"></td>
+                <td><input type="radio" name="facial profile-status" value="Abnormal"></td>
+                <td><input type="text" name="facial profile-comment"></td>
+            </tr>
+            <tr>
+                <td>Mouth</td>
+                <td><input type="radio" name="mouth-status" value="Normal"></td>
+                <td><input type="radio" name="mouth-status" value="Abnormal"></td>
+                <td><input type="text" name="mouth-comment"></td>
+            </tr>
+            <tr>
+                <td>Orbits</td>
+                <td><input type="radio" name="orbits-status" value="Normal"></td>
+                <td><input type="radio" name="orbits-status" value="Abnormal"></td>
+                <td><input type="text" name="orbits-comment"></td>
+            </tr>
+            <tr>
+                <td>Chest</td>
+                <td><input type="radio" name="chest-status" value="Normal"></td>
+                <td><input type="radio" name="chest-status" value="Abnormal"></td>
+                <td><input type="text" name="chest-comment"></td>
+            </tr>
+            <tr>
+                <td>Heart
+                    <div class="subparts">
+                        <input type="checkbox" id="situs" name="situs"> --situs--
+                        <input type="checkbox" id="axis" name="axis-"> -axis-
+                        <input type="checkbox" id="4ch" name="4ch"> --4ch--
+                        <input type="checkbox" id="lvot" name="lvot"> -lvot-
+                        <input type="checkbox" id="rvot" name="rvot"> -rvot-
+                        <input type="checkbox" id="3vv" name="3vv"> -3vv-
+                        <input type="checkbox" id="No ARSA" name="No ARSA"> NoARSA
+                    </div>
+                </td>
+                <td><input type="radio" name="heart-status" value="Normal"></td>
+                <td><input type="radio" name="heart-status" value="Abnormal"></td>
+                <td><input type="text" name="heart-comment"></td>
+            </tr>
+            <tr>
+                <td>Diaphragm</td>
+                <td><input type="radio" name="diaphragm-status" value="Normal"></td>
+                <td><input type="radio" name="diaphragm-status" value="Abnormal"></td>
+                <td><input type="text" name="diaphragm-comment"></td>
+            </tr>
+            <tr>
+                <td>Abdomen
+                    <div class="subparts">
+                        <input type="checkbox" id="stomach bubble" name="stomach bubble"> stomach-bubble
+                        <input type="checkbox" id="gall bladder" name="gall bladder"> gall-bladder
+                        <input type="checkbox" id="no other dilated bowel loops" name="no other dilated bowel loops"> no-other-dilated-bowel-loops
+                        <input type="checkbox" id="cord attachment to AAW" name="cord attachment to AAW"> cord-attachment-to-AAW
+                    </div>
+                </td>
+                <td><input type="radio" name="abdomen-status" value="Normal"></td>
+                <td><input type="radio" name="abdomen-status" value="Abnormal"></td>
+                <td><input type="text" name="abdomen-comment"></td>
+            </tr>
+            <tr>
+                <td>Kidneys
+                    <div class="subparts">
+                        <input type="checkbox" id="hypoechoic" name="hypoechoic"> hypoechoic
+                        <input type="checkbox" id="CMD" name="CMD"> CMD
+                        <input type="checkbox" id="PELVIS" name="PELVIS"> PELVIS
+                        <input type="checkbox" id="NO CYSTS" name="NO CYSTS"> NO CYSTS
+                    </div>
+                </td>
+                <td><input type="radio" name="kidneys-status" value="Normal"></td>
+                <td><input type="radio" name="kidneys-status" value="Abnormal"></td>
+                <td><input type="text" name="kidneys-comment"></td>
+            </tr>
+            <tr>
+                <td>Bladder with Two Arteries</td>
+                <td><input type="radio" name="bladder-status" value="Normal"></td>
+                <td><input type="radio" name="bladder-status" value="Abnormal"></td>
+                <td><input type="text" name="bladder-comment"></td>
+            </tr>
+            <tr>
+                <td>Upper Limbs
+                    <div class="subparts">
+                        <input type="checkbox" id="Humerus" name="Humerus"> Humerus
+                        <input type="checkbox" id="Fore arm" name="Fore arm"> Fore arm
+                        <input type="checkbox" id="Hand" name="Hand"> Hand
+                    </div>
+                </td>
+                <td><input type="radio" name="upper-limbs-status" value="Normal"></td>
+                <td><input type="radio" name="upper-limbs-status" value="Abnormal"></td>
+                <td><input type="text" name="upper-limbs-comment"></td>
+            </tr>
+            <tr>
+                <td>Lower Limbs
+                    <div class="subparts">
+                        <input type="checkbox" id="Femur" name="Femur"> -Femur-
+                        <input type="checkbox" id="Leg" name="Leg"> -Leg-
+                        <input type="checkbox" id="Foot" name="Foot"> Foot
+                    </div>
+                </td>
+                <td><input type="radio" name="lower-limbs-status" value="Normal"></td>
+                <td><input type="radio" name="lower-limbs-status" value="Abnormal"></td>
+                <td><input type="text" name="lower-limbs-comment"></td>
+            </tr>
+            <tr>
+                <td>Neck
+                    <div class="subparts">
+                        <input type="checkbox" id="no massess" name="no massess"> no massess
+                        <input type="checkbox" id="ear" name="ear"> ear
+                    </div>
+                </td>
+                <td><input type="radio" name="neck-status" value="Normal"></td>
+                <td><input type="radio" name="neck-status" value="Abnormal"></td>
+                <td><input type="text" name="neck-comment"></td>
+            </tr>
+            <tr>
+                <td>Spine
+                    <div class="subparts">
+                        <input type="checkbox" id="sag view" name="sag view"> sag view
+                        <input type="checkbox" id="conus" name="conus"> conus
+                        <input type="checkbox" id="coronal" name="coronal"> coronal
+                        <input type="checkbox" id="transverse" name="transverse"> transverse
+                    </div>
+                </td>
+                <td><input type="radio" name="spine-status" value="Normal"></td>
+                <td><input type="radio" name="spine-status" value="Abnormal"></td>
+                <td><input type="text" name="spine-comment"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-title">Add System Details</div>
+    <select id="system-select">
+        <option value="">Select a system</option>
+        <option value="neurosono">Neurosono</option>
+        <option value="cardia">Cardia</option>
+        <option value="renal">Renal</option>
+        <option value="skeletal">Skeletal</option>
+    </select>
+    <button onclick="addSystem()">Add System</button>
+
+    <div id="systems-container"></div>
+    <div class="section-title">Single Live Intrauterine Fetus Corresponding to:</div>
+    <div>
+        <label for="fetal-weeks">Weeks:</label>
+        <input type="number" id="fetal-weeks" name="fetal-weeks" min="19" max="36">
+    </div>
+    <div>
+        <label for="fetal-days">Days:</label>
+        <input type="number" id="fetal-days" name="fetal-days" min="0" max="6">
+    </div>
+    <div>
+        <label for="fetal-weight">Fetal Weight:</label>
+        <input type="text" id="fetal-weight" name="fetal-weight">
+    </div>
+    <div>
+        <label for="bpd">BPD:</label>
+        <input type="text" id="bpd" name="bpd">
+    </div>
+    <div>
+        <label for="hc">HC:</label>
+        <input type="text" id="hc" name="hc">
+    </div>
+    <div>
+        <label for="ac">AC:</label>
+        <input type="text" id="ac" name="ac">
+    </div>
+    <div>
+        <label for="fl">FL:</label>
+        <input type="text" id="fl" name="fl">
+    </div>
+    <div>
+    <textarea class="textbox" name="fetal-measurements-comment" placeholder="Comments"></textarea>
+    </div>
+
+    <div class="section-title">Note:</div>
+    <p>Detection of anomalies depends on fetal position, liquor, gestational age, and maternal body habitus. Correlate with biochemical markers to rule out aneuploidies. Only the above-mentioned fetal parts have been visualized and assessed. Sonography has its own limitations. It is important to understand that all anomalies cannot be detected by scan.</p>
+
+    <div class="section-title">Declaration:</div>
+    <p>I declare that while conducting ultrasonography on Ms/Mrs. <input type="text" id="declaration-name" name="declaration-name">, I have neither detected nor disclosed the sex of her fetus to anybody in any manner.</p>
+    <input type="text" class="textbox" name="declaration-comment" placeholder="Comments">
+
+
+    <button onclick="toggleUnusedFields()">BSKRH</button>
+
+    
+<script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const patientNameInput = document.getElementById('patient-name');
+            const patientInfoDiv = document.querySelector('.patient-info');
+
+            function updatePatientName() {
+                const name = patientNameInput.value;
+                patientInfoDiv.setAttribute('data-patient-name', name);
+            }
+
+            patientNameInput.addEventListener('input', updatePatientName);
+            updatePatientName(); // Initial call to set the attribute based on the current input value
+        });
+    </script>
+</body>
+</html>
